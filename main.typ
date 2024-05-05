@@ -58,22 +58,16 @@
 
 == Equivalence rules
 
-- Commutativity of Union: $R∪S=S∪R$ 
-- Commutativity of Intersection: $R∩S=S∩R$ 
-- Commutativity of Join: $R join S=S join R$ 
-- Associativity of Union: $(R∪S)∪T=R∪(S∪T)$ 
-- Associativity of Intersection: $(R∩S)∩T=R∩(S∩T)$ 
-- Associativity of Join: $(R join S) join T=R join (S join T)$ 
-- Theta joins are associative in the following manner: $(E_1  join_theta_1
-  E_2)  join_(theta_2 and theta_3) E_3 ≡E_1  join_(theta_1 or theta_3) (E_2
-  join_theta_2 E_3)$ 
-- Distributivity of Union over IntersectionL $R∪(S∩T)=(R∪S)∩(R∪T)$ 
-- Distributivity of Intersection over Union: $R∩(S∪T)=(R∩S)∪(R∩T)$ 
-- Distributivity of Join over Union: $R join (S∪T)=(R join S)∪(R join T)$ 
-- Selection is Commutative: $ sigma p_1( sigma p_2(R))= sigma p_2( sigma
-  p_1(R))$ 
-- Selection Distributes Over Union: $ sigma p(R∪S)= sigma p(R)∪ sigma p(S)$ 
-- Projection Distributes Over Union: $pi c(R∪S)=pi c(R)∪pi c(S)$ 
+- *Commutativity*: $R∪S=S∪R$; Intersection: $R∩S=S∩R$; Join: $R join S=S
+  join R$; Selection : $ sigma p_1( sigma p_2(R))= sigma p_2( sigma p_1(R))$.
+- *Associativity*: $(R∪S)∪T=R∪(S∪T)$; Intersection: $(R∩S)∩T=R∩(S∩T)$;
+  Join: $(R join S) join T=R join (S join T)$; Theta joins are associative in
+  the following manner: $(E_1  join_theta_1 E_2)  join_(theta_2 and theta_3)
+  E_3 ≡E_1  join_(theta_1 or theta_3) (E_2 join_theta_2 E_3)$ 
+- *Distributivity*: Distributivity of Union over Intersection:
+  $R∪(S∩T)=(R∪S)∩(R∪T)$; Intersection over Union: $R∩(S∪T)=(R∩S)∪(R∩T)$ Join over
+  Union: $R join (S∪T)=(R join S)∪(R join T)$; Selection Over Union:
+  $ sigma p(R∪S)= sigma p(R)∪ sigma p(S)$; Projection Over Union: $pi c(R∪S)=pi c(R)∪pi c(S)$;
 - Selection and Join Commutativity:  $ sigma p(R join S)= sigma p(R) join S$ if
   p involves only attributes of R
 - Pushing Selections Through Joins:  $ sigma p(R join S)=( sigma p(R)) join S$
@@ -109,7 +103,7 @@
 - Theta Join ($join_theta$). Syntax: $R join_theta S$. Purpose: Combines tuples
   from R and S where the theta condition holds.
 
-- Outer Join. Full Outer Join: $R join.l.r S$. Left Outer Join: $R join.l S$.
+- Full Outer Join: $R join.l.r S$. Left Outer Join: $R join.l S$.
   Right Outer Join: $R join.r S$. Purpose: Extends join to include non-matching
   tuples from one or both relations, filling with nulls.
 
@@ -170,24 +164,37 @@ conflict serializable.
 
 == Standard isolation levels
 
-- *Serializable* usually ensures serializable execution. However, as we shall explain
-  shortly, some database systems implement this isolation level in a manner that
-  may, in certain cases, allow nonserializable executions.
+- *Serializable* usually ensures serializable execution.
 - *Repeatable* read allows only committed data to be read and further requires that,
   between two reads of a data item by a transaction, no other transaction is allowed
-  to update it. However, the transaction may not be serializable with respect to other
-  transactions. For instance, when it is searching for data satisfying some conditions,
-  a transaction may find some of the data inserted by a committed transaction, but
-  may not find other data inserted by the same transaction.
-- *Read committed* allows only committed data to be read, but does not require re-
-  peatable reads. For instance, between two reads of a data item by the transaction,
-  another transaction may have updated the data item and committed.
-- *Read uncommitted* allows uncommitted data to be read. It is the lowest isolation
-  level allowed by SQL.
+  to update it. However, the transaction may not be serializable
+- *Read committed* allows only committed data to be read, but does not require re- peatable reads. 
+- *Read uncommitted* allows uncommitted data to be read. Lowest isolation level allowed by SQL.
+
+== Schedule
+
+We say that a schedule S is *legal* under a given locking protocol if S is a possible
+schedule for a set of transactions that follows the rules of the locking protocol. We say
+that a locking protocol ensures conflict serializability if and only if all legal schedules
+are *conflict serializable*; in other words, for all legal schedules the associated →relation
+is acyclic.
 
 == Protocols
 
 === Lock-based
+
+==== Dealock
+
+*Deadlock* is a condition where two or more tasks are each waiting for the
+other to release a resource, or more than two tasks are waiting for resources
+in a circular chain.
+
+==== Starvation
+
+*Starvation* (also known as indefinite blocking) occurs when a process or
+thread is perpetually denied necessary resources to process its work. Unlike
+deadlock, where everything halts, starvation only affects some while others
+progress.
 
 === Timestamp-based
 
@@ -199,10 +206,48 @@ conflict serializable.
 
 == WAL principle
 
-== Write ahead principle 
+*Write Ahead Logging* -- Any change to data (update, delete, insert) must be
+recorded in the log before the actual data is written to the disk. This ensures
+that if the system crashes before the data pages are saved, the changes can
+still be reconstructed from the log records during recovery.
 
 == Recovery algorithm
 
-== Log type examples
+In the *redo phase*, the system replays updates of all transactions by scanning
+the log forward from the last checkpoint. The specific steps taken while
+scanning the log are as follows:
 
-== Recovery example
++ The list of transactions to be rolled back, undo-list, is initially set to the list
+   $L$ in the $<#[checkpoint] L>$ log record.
++ Whenever a normal log record of the form  $<T_i, X_j, V_1, V_2>$, or a redo-
+  only log record of the form  $<T_i, X_j, V_2>$ is encountered, the operation is
+  redone; that is, the value $V_2$ is written to data item $X_j$.
++ Whenever a log record of the form $<T_i #[start]>$ is found, $T_i$ is added to
+  undo-list.
++ Whenever a log record of the form $<T_i #[abort]>$ or $<T_i #[commit]>$ is found,
+  $T_i$ is removed from undo-list.
+
+At the end of the redo phase, undo-list contains the list of all transactions that
+are incomplete, that is, they neither committed nor completed rollback before the crash.
+\ In the *undo phase*, the system rolls back all transactions in the undo-list.
+It performs rollback by scanning the log backward from the end:
+
++ Whenever it finds a log record belonging to a transaction in the undo-list, it
+  performs undo actions just as if the log record had been found during the
+  rollback of a failed transaction.
++ When the system finds a $<T_i #[start]>$ log record for a transaction $T_i$ in undo-
+  list, it writes a $<T_i #[abort]>$ log record to the log and removes $T_i$ from undo-
+  list.
++ The undo phase terminates once undo-list becomes empty, that is, the system
+  has found $<T_i #[start]>$ log records for all transactions that were initially
+  in undo-list.
+
+== Log types
+
+- $<T_i, X_j, V_1, V_2>$ -- an update log record, indicating that transaction
+  $T_i$ has performed a write on data item $X_j$. $X_j$ had value $V_1$ before
+  the write and has value $V_2$ after the write. 
+- $<T_i #[start]>$ -- $T_i$ has started.
+- $<T_i #[commit]>$ -- $T_i$ has committed.
+- $<T_i #[abort]>$ -- $T_i$ has aborted.
+
