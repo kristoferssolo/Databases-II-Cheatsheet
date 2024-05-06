@@ -90,8 +90,9 @@ for each tuple tr in r: (for each tuple ts in s: test pair (tr, ts))
 ```
 
 Block transfer cost:  $n_r ∗ b_s + b_r$ block transfers would be required,
-where $b_r$ -- blocks in relation $r$, same for $s$. Seek count depends
-on how many buffers are available.
+where $b_r$ -- blocks in relation $r$, same for $s$. Each scan of the inner
+relation requires one seek, and the scan of the outer relation requires one
+seek per block, leading to a total of $2 ∗b_r$ seeks.
 
 == Block-nested join
 
