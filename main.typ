@@ -1,6 +1,6 @@
 #import "@preview/tablex:0.0.8": tablex, rowspanx, colspanx
 #set page(margin: 0.6cm, columns: 3)
-
+#set par(justify: true)
 #set text(6pt)
 #show heading: it => {
   if it.level == 1 {
@@ -17,13 +17,13 @@
 
 Each bit in a bitmap corresponds to a possible item or condition, with a bit set
 to 1 indicating presence or true, and a bit set to 0 indicating absence or
-false.
+`false`.
 
 #tablex(
   stroke: 0.5pt, columns: 4, [record number], `ID`, `gender`, `income_level`, `0`, `76766`, `m`, `L1`, `1`, `22222`, `f`, `L2`, `2`, `12121`, `f`, `L1`, `3`, `15151`, `m`, `L4`, `4`, `58583`, `f`, `L3`,
 )
 #grid(
-  columns: 3, gutter: 2em, tablex(
+  columns: 2, gutter: 2em, tablex(
     stroke: 0.5pt, columns: 2, colspanx(2)[Bitmaps for `gender`], `m`, `10010`, `f`, `01101`,
   ), tablex(
     stroke: 0.5pt, columns: 2, colspanx(2)[Bitmaps for `income_level`], `L1`, `10010`, `L2`, `01000`, `L3`, `00001`, `L4`, `00010`, `L5`, `00000`,
@@ -37,8 +37,8 @@ sorted and allows searches, sequential access, insertions, and deletions in
 logarithmic time. It is an extension of the B-tree and is extensively used in
 databases and filesystems for indexing. B+ tree is *Balanced*; Order (n):
 Defined such that each node (except root) can have at most $n$ children
-(pointers) and at least $⌈n/2⌉$ children; *Internal nodes hold* between
-$⌈n/2⌉−1$ and $n−1$ keys (values); Leaf nodes hold between $⌈frac(n −1, 2)⌉$ and
+(pointers) and at least $ceil(n/2)$ children; *Internal nodes hold* between
+$ceil(n/2)−1$ and $n−1$ keys (values); Leaf nodes hold between $ceil((n−1)/2)$ and
 $n−1$ keys, but also store all data values corresponding to the keys; *Leaf
 Nodes Linked*: Leaf nodes are linked together, making range queries and
 sequential access very efficient.
@@ -47,17 +47,17 @@ sequential access very efficient.
   - Insert key in the appropriate leaf node in sorted order;
   - If the node overflows (more than $n−1$ keys), split it, add the middle key to
     the parent, and adjust pointers;
-    + Leaf split: $1$ to $ceil(frac(n, 2)) $ and $ceil(frac(n, 2)) + 1 $ to
+    + Leaf split: $1$ to $ceil(n/2) $ and $ceil(n/2) + 1 $ to
       $n$ as two leafs. Promote the lowest from the 2nd one.
-    + Node split: $1$ to $ceil(frac(n+1, 2)) - 1 $ and $ceil(frac(n, 2)) + 1$ to $n$.
-      $ceil(frac(n+1, 2))$ gets moved up.
+    + Node split: $1$ to $ceil((n+1)/2) - 1 $ and $ceil(n/2) + 1$ to $n$.
+      $ceil(n+1/2)$ gets moved up.
   - If a split propagates to the root and causes the root to overflow, split the
     root and create a new root. Note: root can contain less than
-    $ceil(frac(n, 2)) - 1$ keys.
+    $ceil(n/2) - 1$ keys.
 - *Delete (key)*:
   - Remove the key from the leaf node.
-  - If the node underflows (fewer than $⌈n/2⌉−1$ keys), keys and pointers are
-    redistributed or nodes are merged to maintain minimum occupancy. -
+  - If the node underflows (fewer than $ceil(n/2)−1$ keys), keys and pointers are
+    redistributed or nodes are merged to maintain minimum occupancy.
   Adjustments may propagate up to ensure all properties are maintained.
 
 == Hash-index
@@ -82,7 +82,7 @@ tuple of the outer table is compared against every tuple of the inner table to
 find all pairs of tuples which satisfy the join condition. This method is simple
 but can be inefficient for large datasets due to its high computational cost.
 
-```
+```python
 Simplified version (to get the idea)
 for each tuple tr in r: (for each tuple ts in s: test pair (tr, ts))
 ```
@@ -100,7 +100,7 @@ in memory and then loops through the inner table, reducing the number of disk
 accesses and improving performance over a standard nested loop join, especially
 when indices are not available.
 
-```
+```python
 Simplified version (to get the idea)
 for each block Br of r: for each block Bs of s:
   for each tuple tr in r: (for each tuple ts in s: test pair (tr, ts))
@@ -199,9 +199,9 @@ $b_b$ blocks are allocated for the input buffer and each output buffer.
   $ (E_1 sect E_2) sect E_3 = E_1 sect (E_2 sect E_3) $
 + The selection operation distributes over the union, intersection, and
   set-difference operations:
-  $ sigma_P (E_1 - E_2) = sigma_P(E_1) - E_2 = sigma_P(E_1) - sigma_P(E_2) $
+  $ sigma_P (E_1 - E_2) = sigma_P (E_1) - E_2 = sigma_P (E_1) - sigma_P (E_2) $
 + The projection operation distributes over the union operation:
-  $ Pi_L (E_1 union E_2) = (Pi_L(E_1)) union (Pi_L(E_2)) $
+  $ Pi_L (E_1 union E_2) = (Pi_L (E_1)) union (Pi_L (E_2)) $
 
 // FROM Database concepts
 
@@ -269,7 +269,7 @@ a *write* operation. For example:
 == Conflict-serializability
 
 If a schedule $S$ can be transformed into a schedule $S'$ by a series of swaps
-of non- conflicting instructions, we say that $S$ and $S'$ are *conflict
+of non-conflicting instructions, we say that $S$ and $S'$ are *conflict
 equivalent*. We can swap only _adjacent_ operations.
 
 The concept of conflict equivalence leads to the concept of conflict
@@ -282,7 +282,7 @@ conflict equivalent to a serial schedule.
 Simple and efficient method for determining the conflict seriazability of a
 schedule. Consider a schedule $S$. We construct a directed graph, called a
 precedence graph, from $S$. The set of vertices consists of all the transactions
-participating in the schedule. The set of edges consists of all edges $T_i arrow T_j$ for
+participating in the schedule. The set of edges consists of all edges $T_i -> T_j$ for
 which one of three conditions holds:
 
 + $T_i$ executes `write(Q)` before $T_j$ executes `read(Q)`.
@@ -424,3 +424,68 @@ performs rollback by scanning the log backward from the end:
 - $<T_i #[abort]>$ -- $T_i$ has aborted;
 - $<#[checkpoint] {T_0, T_1, dots, T_n}>$ -- a checkpoint with a list of active
   transactions at the moment of checkpoint.
+
+== Task
+Pieņemsim, ka ir divas relācijas $r_1$ un $r_2$ ar atbilstošiem atribūtiem $r_1(A,B)$ un $r_2(B,C,D,E)$.
+Relācijā $r_1$ ir $51105$ raksti, relācijā $r_2$ ir $320251$ raksti. Pieņemsim,
+ka vienā blokā ietilpst $27$ relācijas $r_1$ raksti un $25$ relācijas $r_2$ raksti.
+Relācijas tiek joinotas $(r_1 join r_2)$ izmantojot _block nested-loop join_ algoritmu.
+Cik bloki ir minimālais atmiņas *apjoms $M$ (skaitlis!)*, lai būtu nepieciešams
+ne vairāk kā
++ $130000$ bloku pārraides (transfers) no diska
++ $25000$ bloku pārraides (transfers) no diska
+
+$ T=ceil(b_r/(M-2)) dot b_s+b_r ==> M approx ceil((b_s b_r)/(T-b_r))+2 $
+
+$
+  b_(r_1)=ceil(51105/27)=1893;
+  b_(r_2)=ceil(320251/25)=12811
+$
+
+== Task
+Pieņemsim, ka ir divas relācijas $r_1$ un $r_2$ ar atbilstošiem atribūtiem $r_1(A,B)$ un $r_2(B,C,D,E)$.
+Relācijā $r_1$ ir $75435$ raksti, relācijai $r_2$ ir $11456$ raksti. Pieņemsim,
+ka vienā blokā ietilpst $22$ relācijas $r_1$ raksti un $35$ relācijas $r_2$ raksti.
+Pieņemsim, ka ir pieejami $5$ atmiņas bloki konkrētā algoritma izpildei. Viena
+bloka pārraidei no diska nepieciešamas $0.001 "ms"$, bloka meklēšanai -- $0.1 "ms"$.
+Uzrakstīt aprēķina formulas un savus pieņēmumus, kā arī aprēķināt skaitliski,
+cik minimāli laika (ms) nepieciešams, lai izrēķinātu $r_1 join r_2$, izmantojot
+_block join_ un _nested-loop join_. Neņemiet vērā laiku, ko prasa gala rezultāta
+ierakstīšana diskā un neņemt vērā procesora laiku, kas patērēts šai operācijai.
+Ņemt vērā tikai bloku meklēšanas un lasīšanas laikus.
+
+===
+$|r_1|=75435; |r_2|=11456$\
+$b_r_1=22; b_r_2=35$\
+$B=5;T_"disk"=0.001;T_"seek"=0.1$
+
+=== Block Join method
++ *Memory Limitation*: Only 5 blocks available.
++ Blocks Needed for $r_1$ and $r_2$:
+  - $r_1: ceil(75435/22)=3429$
+  - $r_2: ceil(11456/35)=328$
++ *Strategy:*
+  - Use 1 block for $r_1$ and 4 blocks for $r_2$ (or vice versa depending on which
+    is more efficient).
+  - This setup means you can have 4 blocks of $r_2$ loaded into memory, storing up
+    to $4 dot 35=140$ patterns of $r_2$ at a time.
++ *Iterations Needed*:
+  - *For $r_2$:* $ceil(11456/140)=82$ full iterations (each iteration loads $140$ patterns
+    of $r_2$ into memory).
+  - *For $r_1$:* Each block of $r_1$ needs to be loaded and processed against all
+    loaded $r_2$ blocks for each iteration.
++ *Time Calculation for Block Join:*
+  - Load time for $r_2$ per iteration: $4 dot 0.001 = 0.004 "ms"$
+  - Total load time for $r_2$: $82 dot 0.004 = 0.328 "ms"$
+  - Join Time per $r_1$ block per $r_2$ iteration: $0.1 "ms"$ (for each block of $r_1$ joined
+    with 4 blocks of $r_2$)
+  - Total join time for all $r_1$ blocks per $r_2$ iteration: $3429 dot 0.1= 342.9"ms"$
+  - Total join time for all iterations: $343 dot 82 = 28117.8 "ms"$
+
+=== Nested-Loop Join Method
++ Nested-loop join:
+  - For each pattern in $r_1$, search all patterns in $r_2$.
++ Total Combinations: $75435 dot 11456=$
++ Time Calculation for Nested-Loop Join:
+  - Reading and searching time for each combination: $0.001+0.1=0.101 "ms"$
+  - Total time: $75435 dot 11456 dot 0.101 = 87282519.36 "ms"$
