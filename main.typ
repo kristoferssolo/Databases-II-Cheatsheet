@@ -38,8 +38,8 @@ logarithmic time. It is an extension of the B-tree and is extensively used in
 databases and filesystems for indexing. B+ tree is *Balanced*; Order (n):
 Defined such that each node (except root) can have at most $n$ children
 (pointers) and at least $⌈n/2⌉$ children; *Internal nodes hold* between
-⌈n/2⌉−1⌈n/2⌉−1 and n−1n−1 keys; Leaf nodes also hold between $⌈n/2⌉−1$ and
-$n−1$ keys but also store all data values corresponding to the keys; *Leaf
+$⌈n/2⌉−1$ and $n−1$ keys (values); Leaf nodes hold between $⌈frac(n −1,2)⌉$ and
+$n−1$ keys, but also store all data values corresponding to the keys; *Leaf
 Nodes Linked*: Leaf nodes are linked together, making range queries and
 sequential access very efficient.
 
@@ -49,8 +49,8 @@ sequential access very efficient.
       key to the parent, and adjust pointers;
       + Leaf split: $1$ to $ceil(frac(n,2)) $ and $ceil(frac(n,2)) + 1 $ to
        $n$ as two leafs. Promote the lowest from the 2nd one.
-      + Node split: $1$ to $ceil(frac(n+1, 2)) - 1 $ and $ceil(frac(n,2)) + 1 $.
-        $ceil(frac(n+1, 2)) - 1 $ gets moved up.
+      + Node split: $1$ to $ceil(frac(n+1, 2)) - 1 $ and $ceil(frac(n,2)) + 1$ to $n$.
+        $ceil(frac(n+1, 2))$ gets moved up.
     - If a split propagates to the root and causes the root to overflow, split
       the root and create a new root. Note: root can contain less than
       $ceil(frac(n,2)) - 1$ keys.
@@ -196,19 +196,19 @@ $b_b$ blocks are allocated for the input buffer and each output buffer.
   E_2)  join_(theta_2 and theta_3) |||| E_3 ≡E_1  join_(theta_1 or theta_3) (E_2
   join_theta_2 E_3)$ 
 + Selection distribution: $σ_(θ_1)(E_1 ⋈_θ E_2) ≡(σ_(θ_1) (E_1)) ⋈_θ E_2$;
-  $σ_(θ_1∧θ_2)(E_1 ⋈_θ E_2) ≡(σ_(θ_1)(E_1)) ⋈_θ (σ_(θ_2)(E_2))$
+  $σ_(θ_1∧θ_2)(E_1 ⋈_θ E_2) ≡ (σ_(θ_1)(E_1)) ⋈_θ (σ_(θ_2)(E_2))$
 + Projection distribution: - $Π_(L_1∪L_2) (E_1 ⋈_θ E_2) ≡(Π_(L_1(E_1)) ⋈_θ
   (Π_(L_2)(E_2))$ ||||  $Π(L_1∪L_2) (E_1 ⋈_θ E_2) ≡Π_(L_1∪L_2) ((Π_(L_1∪L_3) (E_1))
   ⋈_θ (Π_(L_2∪L_4) (E_2)))$
-+ Union and intersection commmutativity: E1 ∪E2 ≡E2 ∪E1 |||| - E1 ∩E2 ≡E2 ∩E1
-+ Set union and intersection are associative: (E1 ∪E2) ∪E3 ≡E1 ∪(E2 ∪E3) |||| (E1
-  ∩E2) ∩E3 ≡E1 ∩(E2 ∩E3);
++ Union and intersection commmutativity: $E_1 ∪E_2 ≡E_2 ∪E_1 |||| - E_1 ∩E_2 ≡E_2 ∩E_1$
++ Set union and intersection are associative: $(E_1 ∪E_2) ∪E_3 ≡E_1 ∪(E_2 ∪E_3) |||| (E_1
+  ∩E_2) ∩E_3 ≡E_1 ∩(E_2 ∩E_3)$;
 + The selection operation distributes over the union, intersection, and
-  set-difference operations: σθ(E1 ∪E2) ≡σθ(E1) ∪σθ(E2) |||| σθ(E1 ∩E2) ≡σθ(E1)
-  ∩σθ(E2) |||| σθ(E1 −E2) ≡σθ(E1) −σθ(E2) |||| σθ(E1 ∩E2) ≡σθ(E1) ∩E2 |||| σθ(E1 −E2) ≡σθ(E1)
-  −E2 |||| 12. 
-+ The projection operation distributes over the union operation - ΠL(E1
-  ∪E2) ≡(ΠL(E1)) ∪(ΠL(E2))
+  set-difference operations: $σ_θ(E_1 ∪E_2) ≡σ_θ(E_1) ∪σ_θ(E_2) |||| σ_θ(E_1 ∩E_2) ≡σ_θ(E_1)
+  ∩σ_θ(E_2) |||| σ_θ(E_1 −E_2) ≡σ_θ(E_1) −σ_θ(E_2) |||| σ_θ(E_1 ∩E_2) ≡σ_θ(E_1) ∩E_2 |||| σ_θ(E_1 −E_2) ≡σ_θ(E_1)
+  −E_2$;
++ The projection operation distributes over the union operation - $Π_L(E_1
+  ∪E_2) ≡(Π_L_(E_1)) ∪(Π_L(E_2))$.
 
 // == Operations
 //
@@ -306,8 +306,6 @@ conflict serializable.
 - *Read committed* allows only committed data to be read, but does not require re- peatable reads. 
 - *Read uncommitted* allows uncommitted data to be read. Lowest isolation level allowed by SQL.
 
-
-
 == Protocols
 
 We say that a schedule S is *legal* under a given locking protocol if S is a possible
@@ -317,6 +315,12 @@ are *conflict serializable*; in other words, for all legal schedules the associa
 is acyclic.
 
 === Lock-based
+
+*Shared Lock* -- If a transaction $T_i$ has obtained a shared-mode lock (denoted by $S$) on
+item Q, then Ti can read, but cannot write, $Q$. \
+*Exclusive Lock* -- If a transaction $T_i$ has obtained an exclusive-mode lock
+(denoted by $X$) on item Q, then Ti can both read and write $Q$.
+
 
 ==== 2-phased lock protocol
 
@@ -357,7 +361,7 @@ must validate that no other transactions have modified the data it accessed.
 *Commit Phase:* If the validation is successful, the transaction commits and
 applies its changes. If not, it rolls back and may be restarted.
 
-=== Version isolation
+// === Version isolation
 
 = Logs
 
@@ -403,8 +407,10 @@ It performs rollback by scanning the log backward from the end:
 
 - $<T_i, X_j, V_1, V_2>$ -- an update log record, indicating that transaction
   $T_i$ has performed a write on data item $X_j$. $X_j$ had value $V_1$ before
-  the write and has value $V_2$ after the write. 
-- $<T_i #[start]>$ -- $T_i$ has started.
-- $<T_i #[commit]>$ -- $T_i$ has committed.
-- $<T_i #[abort]>$ -- $T_i$ has aborted.
+  the write and has value $V_2$ after the write;
+- $<T_i #[start]>$ -- $T_i$ has started;
+- $<T_i #[commit]>$ -- $T_i$ has committed;
+- $<T_i #[abort]>$ -- $T_i$ has aborted;
+- $<#[checkpoint] {T_0, T_1, dots, T_n}>$ -- a checkpoint with a list of active
+  transactions at the moment of checkpoint.
 
