@@ -26,7 +26,7 @@ to 1 indicating presence or true, and a bit set to 0 indicating absence or
   columns: 2, gutter: 2em, tablex(
     stroke: 0.5pt, columns: 2, colspanx(2)[Bitmaps for `gender`], `m`, `10010`, `f`, `01101`,
   ), tablex(
-    stroke: 0.5pt, columns: 2, colspanx(2)[Bitmaps for `income_level`], `L1`, `10010`, `L2`, `01000`, `L3`, `00001`, `L4`, `00010`, `L5`, `00000`,
+    stroke: 0.5pt, columns: 2, colspanx(2)[Bitmaps for `income_level`], `L1`, `10100`, `L2`, `01000`, `L3`, `00001`, `L4`, `00010`, `L5`, `00000`,
   ),
 )
 
