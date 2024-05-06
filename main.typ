@@ -87,9 +87,10 @@ Simplified version (to get the idea)
 for each tuple tr in r: (for each tuple ts in s: test pair (tr, ts))
 ```
 
-// TODO: Add seek information
-Block transfer cost: $n_r dot b_s + b_r$ block transfers would be required,
-where $b_r$ -- blocks in relation $r$, same for $s$.
+Block transfer cost:  $n_r ∗ b_s + b_r$ block transfers would be required,
+where $b_r$ -- blocks in relation $r$, same for $s$. Each scan of the inner
+relation requires one seek, and the scan of the outer relation requires one
+seek per block, leading to a total of $2 ∗b_r$ seeks.
 
 == Block-nested join
 
@@ -275,7 +276,8 @@ The concept of conflict equivalence leads to the concept of conflict
 serializability. We say that a schedule $S$ is *conflict serializable* if it is
 conflict equivalent to a serial schedule.
 
-=== Serializability graph
+// TODO: rename to precedence
+=== Precedence graph
 
 Simple and efficient method for determining the conflict seriazability of a
 schedule. Consider a schedule $S$. We construct a directed graph, called a
@@ -304,11 +306,19 @@ serializable.
 
 == Protocols
 
-We say that a schedule S is *legal* under a given locking protocol if S is a
-possible schedule for a set of transactions that follows the rules of the
-locking protocol. We say that a locking protocol ensures conflict
-serializability if and only if all legal schedules are *conflict serializable*;
-in other words, for all legal schedules the associated $->$ relation is acyclic.
+We say that a schedule S is *legal* under a given locking protocol if S is a possible
+schedule for a set of transactions that follows the rules of the locking protocol. We say
+that a locking protocol ensures conflict serializability if and only if all legal schedules
+are *conflict serializable*; in other words, for all legal schedules the associated →relation
+is acyclic.
+\ *Recoverable* schedule is one where, for each pair of transactions $T_i$ and
+$T_j$ such that $T_j$ reads a data item previously written by $T_i$, the commit
+operation of $T_i$ appears before the commit operation of $T_j$.
+\ *Cascadeless* schedule is one where, for each pair of transactions $T_i$ and
+$T_j$ such that $T_j$ reads a data item previously written by $T_i$, the commit
+operation of $T_i$ appears before the read operation of $T_j$. 
+Every cascadeless schedule is also recoverable.
+
 
 === Lock-based
 
