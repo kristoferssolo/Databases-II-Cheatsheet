@@ -489,4 +489,5 @@ $B=5;T_"disk"=0.001;T_"seek"=0.1$
 + Total Combinations: $75435 dot 11456$
 + Time Calculation for Nested-Loop Join:
   - Reading and searching time for each combination: $0.001+0.1=0.101 "ms"$
-  - Total time: $75435 dot 11456 dot 0.101 = 87282519.36 "ms"$
+  - Total time: $75435 dot 11456 dot 0.101 = 87282519.36 "ms"$ [Authors comment:
+    seems fishy]
